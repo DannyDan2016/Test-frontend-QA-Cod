@@ -1,0 +1,6 @@
+from pages.login_page import LoginPage
+from pages.inventory_page import InventoryPage
+from pages.cart_page import CartPage
+from pages.checkout_information_page import CheckoutInformationPage
+from pages.checkout_summary_page import CheckoutSummaryPage
+from pages.confirmation_page import ConfirmationPage

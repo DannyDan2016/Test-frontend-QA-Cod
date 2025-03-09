@@ -1,0 +1,26 @@
+{
+    "credentials": {
+        "username": "standard_user",
+        "password": "secret_sauce"
+    },
+    "checkout_info": {
+        "first_name": "John",
+        "last_name": "Doe",
+        "postal_code": "12345"
+    },
+    "expected_totals": {
+        "subtotal": "$29.98",
+        "tax": "$2.40",
+        "total": "$32.38"
+    },
+    "products": [
+        {
+            "name": "Sauce Labs Backpack",
+            "price": "$29.99"
+        },
+        {
+            "name": "Sauce Labs Bike Light",
+            "price": "$9.99"
+        }
+    ]
+}
