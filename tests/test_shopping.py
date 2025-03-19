@@ -23,11 +23,11 @@ async def test_end_to_end_shopping(page: Page, config):
     # **Paso 1: Inicio de sesión**
     login_page = LoginPage(page)
     await page.goto("https://www.saucedemo.com/")
-    await page.wait_for_timeout(3000)  # Espera para visualizar la página de login
+    await page.wait_for_timeout(3000)  
 
     await login_page.login(username, password)
     await page.wait_for_url("https://www.saucedemo.com/inventory.html")
-    await page.wait_for_timeout(3000)  # Espera después de iniciar sesión
+    await page.wait_for_timeout(3000)  
 
     # **Paso 2: Agregar productos al carrito**
     inventory_page = InventoryPage(page)
@@ -35,15 +35,15 @@ async def test_end_to_end_shopping(page: Page, config):
     product2 = "Sauce Labs Bike Light"
     
     await inventory_page.add_to_cart(product1)
-    await page.wait_for_timeout(2000)  # Espera después de agregar primer producto
+    await page.wait_for_timeout(2000)  
     await inventory_page.add_to_cart(product2)
-    await page.wait_for_timeout(2000)  # Espera después de agregar segundo producto
+    await page.wait_for_timeout(2000)  
     assert await inventory_page.get_cart_count() == "2"
 
     # **Paso 3: Verificar carrito**
     await page.locator(".shopping_cart_link").click()
     await page.wait_for_url("https://www.saucedemo.com/cart.html")
-    await page.wait_for_timeout(3000)  # Espera en la página del carrito
+    await page.wait_for_timeout(3000)  
 
     cart_page = CartPage(page)
     products = await cart_page.get_products()
@@ -53,12 +53,12 @@ async def test_end_to_end_shopping(page: Page, config):
     # **Paso 4: Proceso de checkout**
     await page.locator("//button[@id='checkout']").click()
     await page.wait_for_url("https://www.saucedemo.com/checkout-step-one.html")
-    await page.wait_for_timeout(3000)  # Espera en la página de checkout
+    await page.wait_for_timeout(3000)  
 
     checkout_info_page = CheckoutInformationPage(page)
     await checkout_info_page.fill_information(first_name, last_name, postal_code)
     await page.wait_for_url("https://www.saucedemo.com/checkout-step-two.html")
-    await page.wait_for_timeout(3000)  # Espera en la página de resumen
+    await page.wait_for_timeout(3000)  
 
     # **Paso 5: Verificar página de resumen**
     checkout_summary_page = CheckoutSummaryPage(page)
@@ -69,17 +69,17 @@ async def test_end_to_end_shopping(page: Page, config):
     assert subtotal == "Item total: $25.98"
     assert tax == "Tax: $2.08"
     assert total == "Total: $28.06"
-    await page.wait_for_timeout(3000)  # Espera para visualizar los precios
+    await page.wait_for_timeout(3000) 
 
     # **Paso 6: Completar compra**
     await checkout_summary_page.complete_purchase()
     await page.wait_for_url("https://www.saucedemo.com/checkout-complete.html")
-    await page.wait_for_timeout(3000)  # Espera en la página de confirmación
+    await page.wait_for_timeout(3000)  
 
     # **Paso 7: Verificar mensaje de confirmación**
     confirmation_page = ConfirmationPage(page)
     assert await confirmation_page.is_confirmation_displayed()
-    await page.wait_for_timeout(3000)  # Espera final para ver el mensaje
+    await page.wait_for_timeout(3000)  
 
 
 
