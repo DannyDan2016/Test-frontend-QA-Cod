@@ -87,6 +87,3 @@ Sube los cambios (por ejemplo, git push origin feature-nueva).
 Abre un Pull Request para revisión.
 
 
-## Licencia
-Este proyecto está licenciado bajo la Licencia MIT. Consulta el archivo LICENSE para obtener más detalles.
-
