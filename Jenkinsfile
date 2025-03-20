@@ -4,13 +4,14 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'main', url: 'https://github.com/DannyDan2016/Test-frontend-QA-Cod'
+                git 'https://github.com/DannyDan2016/Test-frontend-QA-Cod'
             }
         }
 
         stage('Install Dependencies') {
             steps {
                 bat 'npm install'
+                bat 'npx playwright install'
             }
         }
 
