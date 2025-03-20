@@ -4,7 +4,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git 'https://github.com/DannyDan2016/Test-frontend-QA-Cod'
+                git branch: 'main', url: 'https://github.com/DannyDan2016/Test-frontend-QA-Cod'
             }
         }
 
