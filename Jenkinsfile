@@ -18,7 +18,7 @@ pipeline {
 
         stage('Run Playwright Tests') {
             steps {
-                bat 'venv\\Scripts\\activate && pytest --headless --alluredir=allure-results'
+                bat 'venv\\Scripts\\activate && pytest --alluredir=allure-results'
             }
         }
 
