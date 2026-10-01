@@ -95,35 +95,3 @@ def pytest_runtest_makereport(item, call):
         if os.path.exists(ruta_captura):
             with open(ruta_captura, "rb") as imagen:
                 allure.attach(imagen.read(), name=f"Captura {nombre_prueba}", attachment_type=allure.attachment_type.PNG)
-
-@pytest.hookimpl(trylast=True)
-def pytest_sessionfinish(session, exitstatus):
-    """Genera y abre el reporte de Allure al finalizar las pruebas."""
-    print("\n✅ Generando el reporte Allure...")
-    os.system(f"allure generate {RUTA_REPORTES} --clean -o {os.path.join(RUTA_PROYECTO, 'allure-report')}")
-    print("\n✅ Reporte generado. Abriendo en el navegador...")
-    os.system(f"allure open {os.path.join(RUTA_PROYECTO, 'allure-report')}")
-    
-    print(f"\n🎥 Los videos de la ejecución están guardados en: {RUTA_VIDEOS}")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
