@@ -1,11 +1,21 @@
-from playwright.async_api import Page
+from playwright.sync_api import Page
 
-class CheckoutInformationPage:
-    def __init__(self, page: Page):
-        self.page = page
+from pages.base_page import BasePage
 
-    async def fill_information(self, first_name, last_name, postal_code):
-        await self.page.locator("#first-name").fill(first_name) 
-        await self.page.locator("#last-name").fill(last_name) 
-        await self.page.locator("#postal-code").fill(postal_code)  
-        await self.page.locator("#continue").click() 
+
+class CheckoutInformationPage(BasePage):
+    path = "/checkout-step-one.html"
+
+    def __init__(self, page: Page) -> None:
+        super().__init__(page)
+        # En el checkout los data-test van en camelCase (los id son first-name, etc.)
+        self.first_name = page.get_by_test_id("firstName")
+        self.last_name = page.get_by_test_id("lastName")
+        self.postal_code = page.get_by_test_id("postalCode")
+        self.continue_button = page.get_by_test_id("continue")
+
+    def fill_information(self, first_name: str, last_name: str, postal_code: str) -> None:
+        self.first_name.fill(first_name)
+        self.last_name.fill(last_name)
+        self.postal_code.fill(postal_code)
+        self.continue_button.click()

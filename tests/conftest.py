@@ -1,129 +1,43 @@
-import os
+"""Fixtures compartidos de la suite de UI.
+
+Los fixtures ``browser``, ``context`` y ``page`` vienen de pytest-playwright, de modo
+que el navegador, el modo headed, la base_url y los artefactos (video, captura,
+trace) se controlan por CLI o desde pytest.ini.
+"""
+
 import json
-import pytest
+from pathlib import Path
+
 import allure
-import time
-from playwright.async_api import async_playwright
+import pytest
+from playwright.sync_api import Playwright
 
-# Directorios para guardar reportes y videos
-RUTA_PROYECTO = "C:\\Users\\ASTRID\\Test-frontend-QA-Cod"
-RUTA_REPORTES = os.path.join(RUTA_PROYECTO, "allure-results")
-RUTA_CAPTURAS = os.path.join(RUTA_REPORTES, "capturas")
-RUTA_VIDEOS = os.path.join(RUTA_PROYECTO, "videos", "Test-frontend-QA-Vid")
+RAIZ_PROYECTO = Path(__file__).resolve().parents[1]
 
-# Directorio donde se almacenarán los videos de las pruebas
-VIDEO_DIR = "videos"
-SCREENSHOT_DIR = "screenshots"
-
-# Crear los directorios si no existen
-os.makedirs(VIDEO_DIR, exist_ok=True)
-os.makedirs(SCREENSHOT_DIR, exist_ok=True)
-
-# Crear carpetas si no existen
-os.makedirs(RUTA_REPORTES, exist_ok=True)
-os.makedirs(RUTA_CAPTURAS, exist_ok=True)
-os.makedirs(RUTA_VIDEOS, exist_ok=True)
 
 @pytest.fixture(scope="session", autouse=True)
-def configurar_allure():
-    """Configura la carpeta donde se guardarán los reportes de Allure."""
-    os.environ["ALLURE_RESULTS_DIR"] = RUTA_REPORTES
+def configurar_test_id(playwright: Playwright) -> None:
+    """SauceDemo expone sus selectores estables en el atributo ``data-test``."""
+    playwright.selectors.set_test_id_attribute("data-test")
+
 
 @pytest.fixture(scope="session")
-def datos_prueba():
-    """Carga los datos desde el archivo datos.json."""
-    with open("datos.json", "r", encoding="utf-8") as archivo:
-        datos = json.load(archivo)
-    return datos
-
-@pytest.fixture(scope="session")
-def config():
-    """Carga la configuración desde el archivo config.json."""
-    with open("config.json", "r", encoding="utf-8") as archivo:
-        datos = json.load(archivo)
-    return datos
-
-@pytest.fixture
-async def page(request):
-    """ Proporciona una instancia de Playwright con grabación de video y captura de pantalla. """
-    async with async_playwright() as pw:
-        browser = await pw.chromium.launch(headless=True)
-        context = await browser.new_context(record_video_dir=VIDEO_DIR)  # Guarda en la carpeta
-
-        page = await context.new_page()
-        yield page  # Pasar la página a la prueba
-
-        # Capturar screenshot al final de la prueba
-        test_name = request.node.name
-        screenshot_path = os.path.join(SCREENSHOT_DIR, f"{test_name}.png")
-        await page.screenshot(path=screenshot_path)
-
-        # Adjuntar screenshot a Allure
-        with open(screenshot_path, "rb") as image_file:
-            allure.attach(image_file.read(), name="screenshot", attachment_type=allure.attachment_type.PNG)
-
-        await context.close()
-        await browser.close()
+def config() -> dict:
+    """Carga los datos de prueba desde config.json (ruta relativa a la raíz del repo)."""
+    with (RAIZ_PROYECTO / "config.json").open(encoding="utf-8") as archivo:
+        return json.load(archivo)
 
 
-        # Esperar un momento para que el video termine de guardarse
-        time.sleep(2)
-
-        # Obtener el último video guardado
-        archivos_videos = sorted(os.listdir(RUTA_VIDEOS), key=lambda f: os.path.getctime(os.path.join(RUTA_VIDEOS, f)))
-        if archivos_videos:
-            ultimo_video = os.path.join(RUTA_VIDEOS, archivos_videos[-1])
-            
-            # Crear un nombre único con la fecha y hora
-            marca_tiempo = time.strftime("%Y%m%d_%H%M%S")
-            nombre_final_video = os.path.join(RUTA_VIDEOS, f"Test-frontend-QA-Vid_{marca_tiempo}.webm")
-
-            # Renombrar el video
-            os.rename(ultimo_video, nombre_final_video)
-            print(f"\n🎥 Video guardado en: {nombre_final_video}")
-
-@pytest.hookimpl(tryfirst=True, hookwrapper=True)
-def pytest_runtest_makereport(item, call):
-    """Adjunta capturas de pantalla a Allure en caso de fallo o éxito."""
-    outcome = yield
-    reporte = outcome.get_result()
-
-    if reporte.when == "call":  # Solo adjuntar en la fase de ejecución
-        nombre_prueba = item.name
-        ruta_captura = os.path.join(RUTA_CAPTURAS, f"{nombre_prueba}.png")
-        
-        if os.path.exists(ruta_captura):
-            with open(ruta_captura, "rb") as imagen:
-                allure.attach(imagen.read(), name=f"Captura {nombre_prueba}", attachment_type=allure.attachment_type.PNG)
-
-@pytest.hookimpl(trylast=True)
-def pytest_sessionfinish(session, exitstatus):
-    """Genera y abre el reporte de Allure al finalizar las pruebas."""
-    print("\n✅ Generando el reporte Allure...")
-    os.system(f"allure generate {RUTA_REPORTES} --clean -o {os.path.join(RUTA_PROYECTO, 'allure-report')}")
-    print("\n✅ Reporte generado. Abriendo en el navegador...")
-    os.system(f"allure open {os.path.join(RUTA_PROYECTO, 'allure-report')}")
-    
-    print(f"\n🎥 Los videos de la ejecución están guardados en: {RUTA_VIDEOS}")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+@pytest.hookimpl(wrapper=True)
+def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo):
+    """Adjunta una captura de pantalla a Allure solo cuando el test falla."""
+    reporte = yield
+    if reporte.when == "call" and reporte.failed:
+        page = getattr(item, "funcargs", {}).get("page")
+        if page is not None and not page.is_closed():
+            allure.attach(
+                page.screenshot(full_page=True),
+                name="captura-del-fallo",
+                attachment_type=allure.attachment_type.PNG,
+            )
+    return reporte

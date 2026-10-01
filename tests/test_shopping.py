@@ -1,87 +1,59 @@
-import pytest
-import sys
-import os
-from playwright.async_api import Page
+import re
 
-# Agregar la raíz del proyecto al PATH
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+from playwright.sync_api import Page, expect
 
 from pages import (
-    LoginPage, InventoryPage, CartPage,
-    CheckoutInformationPage, CheckoutSummaryPage, ConfirmationPage
+    CartPage,
+    CheckoutInformationPage,
+    CheckoutSummaryPage,
+    ConfirmationPage,
+    InventoryPage,
+    LoginPage,
 )
 
-@pytest.mark.asyncio
-async def test_end_to_end_shopping(page: Page, config):  
-    # Cargar datos desde config.json
-    username = config["credentials"]["username"]
-    password = config["credentials"]["password"]
-    first_name = config["checkout_info"]["first_name"]
-    last_name = config["checkout_info"]["last_name"]
-    postal_code = config["checkout_info"]["postal_code"]
 
-    # **Paso 1: Inicio de sesión**
-    login_page = LoginPage(page)
-    await page.goto("https://www.saucedemo.com/")
-    await page.wait_for_timeout(3000)  
-
-    await login_page.login(username, password)
-    await page.wait_for_url("https://www.saucedemo.com/inventory.html")
-    await page.wait_for_timeout(3000)  
-
-    # **Paso 2: Agregar productos al carrito**
-    inventory_page = InventoryPage(page)
+def test_end_to_end_shopping(page: Page, config: dict) -> None:
+    credenciales = config["credentials"]
+    datos_checkout = config["checkout_info"]
     product1 = "Test.allTheThings() T-Shirt (Red)"
     product2 = "Sauce Labs Bike Light"
-    
-    await inventory_page.add_to_cart(product1)
-    await page.wait_for_timeout(2000)  
-    await inventory_page.add_to_cart(product2)
-    await page.wait_for_timeout(2000)  
-    assert await inventory_page.get_cart_count() == "2"
 
-    # **Paso 3: Verificar carrito**
-    await page.locator(".shopping_cart_link").click()
-    await page.wait_for_url("https://www.saucedemo.com/cart.html")
-    await page.wait_for_timeout(3000)  
+    # Paso 1: inicio de sesión
+    LoginPage(page).open().login(credenciales["username"], credenciales["password"])
+    expect(page).to_have_url(re.compile(r"/inventory\.html$"))
 
+    # Paso 2: agregar productos al carrito
+    inventory_page = InventoryPage(page)
+    inventory_page.add_to_cart(product1)
+    inventory_page.add_to_cart(product2)
+    expect(inventory_page.cart_badge).to_have_text("2")
+
+    # Paso 3: verificar el carrito
+    inventory_page.open_cart()
+    expect(page).to_have_url(re.compile(r"/cart\.html$"))
     cart_page = CartPage(page)
-    products = await cart_page.get_products()
-    expected_products = [(product1, "$15.99"), (product2, "$9.99")]
-    assert sorted(products) == sorted(expected_products)
+    expect(cart_page.item_names).to_have_text([product1, product2])
+    expect(cart_page.item_prices).to_have_text(["$15.99", "$9.99"])
 
-    # **Paso 4: Proceso de checkout**
-    await page.locator("//button[@id='checkout']").click()
-    await page.wait_for_url("https://www.saucedemo.com/checkout-step-one.html")
-    await page.wait_for_timeout(3000)  
+    # Paso 4: datos del checkout
+    cart_page.checkout()
+    expect(page).to_have_url(re.compile(r"/checkout-step-one\.html$"))
+    CheckoutInformationPage(page).fill_information(
+        datos_checkout["first_name"],
+        datos_checkout["last_name"],
+        datos_checkout["postal_code"],
+    )
+    expect(page).to_have_url(re.compile(r"/checkout-step-two\.html$"))
 
-    checkout_info_page = CheckoutInformationPage(page)
-    await checkout_info_page.fill_information(first_name, last_name, postal_code)
-    await page.wait_for_url("https://www.saucedemo.com/checkout-step-two.html")
-    await page.wait_for_timeout(3000)  
+    # Paso 5: verificar el resumen (impuesto del 8 %)
+    summary_page = CheckoutSummaryPage(page)
+    expect(summary_page.subtotal).to_have_text("Item total: $25.98")
+    expect(summary_page.tax).to_have_text("Tax: $2.08")
+    expect(summary_page.total).to_have_text("Total: $28.06")
 
-    # **Paso 5: Verificar página de resumen**
-    checkout_summary_page = CheckoutSummaryPage(page)
-    subtotal = await checkout_summary_page.get_subtotal()
-    tax = await checkout_summary_page.get_tax()
-    total = await checkout_summary_page.get_total()
+    # Paso 6: completar la compra
+    summary_page.complete_purchase()
+    expect(page).to_have_url(re.compile(r"/checkout-complete\.html$"))
 
-    assert subtotal == "Item total: $25.98"
-    assert tax == "Tax: $2.08"
-    assert total == "Total: $28.06"
-    await page.wait_for_timeout(3000) 
-
-    # **Paso 6: Completar compra**
-    await checkout_summary_page.complete_purchase()
-    await page.wait_for_url("https://www.saucedemo.com/checkout-complete.html")
-    await page.wait_for_timeout(3000)  
-
-    # **Paso 7: Verificar mensaje de confirmación**
-    confirmation_page = ConfirmationPage(page)
-    assert await confirmation_page.is_confirmation_displayed()
-    await page.wait_for_timeout(3000)  
-
-
-
-
-
+    # Paso 7: verificar el mensaje de confirmación
+    expect(ConfirmationPage(page).complete_header).to_have_text("Thank you for your order!")
