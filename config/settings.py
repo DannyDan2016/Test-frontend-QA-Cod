@@ -7,10 +7,12 @@ Orden de precedencia de cada valor (de mayor a menor):
 3. Valores por defecto del ambiente definidos en ``AMBIENTES``.
 
 La URL base además se puede forzar por CLI con ``--base-url`` (ver ``tests/conftest.py``).
+Los usuarios y la contraseña viven en ``data/comun/usuarios.yaml`` (la contraseña se lee
+de ``SAUCE_PASSWORD``), ver ``support/datos.py``.
 """
 
 import os
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -27,10 +29,6 @@ AMBIENTES: dict[str, dict[str, str]] = {
     "staging": {"base_url": "https://www.saucedemo.com"},
 }
 
-# Credenciales públicas de SauceDemo: la propia pantalla de login las muestra, no son secretos.
-USUARIO_POR_DEFECTO = "standard_user"
-PASSWORD_POR_DEFECTO = "secret_sauce"
-
 
 @dataclass(frozen=True)
 class Settings:
@@ -38,8 +36,6 @@ class Settings:
 
     env: str
     base_url: str
-    user: str
-    password: str = field(repr=False)
 
 
 def _leer(variable: str, por_defecto: str) -> str:
@@ -64,6 +60,4 @@ def load_settings(env: str | None = None) -> Settings:
     return Settings(
         env=nombre,
         base_url=_leer("BASE_URL", AMBIENTES[nombre]["base_url"]).rstrip("/"),
-        user=_leer("SAUCE_USER", USUARIO_POR_DEFECTO),
-        password=_leer("SAUCE_PASSWORD", PASSWORD_POR_DEFECTO),
     )
