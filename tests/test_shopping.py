@@ -28,10 +28,10 @@ def test_end_to_end_shopping(page: Page, settings: Settings) -> None:
     inventory_page = InventoryPage(page)
     inventory_page.add_to_cart(product1)
     inventory_page.add_to_cart(product2)
-    expect(inventory_page.cart_badge).to_have_text("2")
+    expect(inventory_page.header.cart_badge).to_have_text("2")
 
     # Paso 3: verificar el carrito
-    inventory_page.open_cart()
+    inventory_page.header.open_cart()
     expect(page).to_have_url(re.compile(r"/cart\.html$"))
     cart_page = CartPage(page)
     expect(cart_page.item_names).to_have_text([product1, product2])

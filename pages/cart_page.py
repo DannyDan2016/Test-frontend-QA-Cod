@@ -1,9 +1,9 @@
 from playwright.sync_api import Page
 
-from pages.base_page import BasePage
+from pages.authenticated_page import AuthenticatedPage
 
 
-class CartPage(BasePage):
+class CartPage(AuthenticatedPage):
     path = "/cart.html"
 
     def __init__(self, page: Page) -> None:
