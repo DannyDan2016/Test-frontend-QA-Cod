@@ -1,0 +1,36 @@
+# Actualizaciones automáticas de dependencias (PRs semanales, en español en el título).
+# OJO: la etiqueta de la imagen de Playwright (Dockerfile) y playwright==X en
+# requirements.txt DEBEN ir a la par; si Dependabot abre solo uno de los dos PRs,
+# actualiza el otro en el mismo PR antes de mergear.
+version: 2
+updates:
+  - package-ecosystem: pip
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "build(deps)"
+    groups:
+      dependencias-python:
+        update-types: [minor, patch]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    commit-message:
+      prefix: "ci(deps)"
+    groups:
+      acciones:
+        patterns: ["*"]
+
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    commit-message:
+      prefix: "build(docker)"
