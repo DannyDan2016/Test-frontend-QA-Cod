@@ -1,0 +1,18 @@
+# Intentos de login que deben fallar: datos de entrada y mensaje exacto de la web.
+casos_invalidos:
+  bloqueado:
+    usuario: locked_out_user
+    password: ${SAUCE_PASSWORD:-secret_sauce}
+    error: "Epic sadface: Sorry, this user has been locked out."
+  password_erronea:
+    usuario: standard_user
+    password: clave_incorrecta
+    error: "Epic sadface: Username and password do not match any user in this service"
+  usuario_vacio:
+    usuario: ""
+    password: ${SAUCE_PASSWORD:-secret_sauce}
+    error: "Epic sadface: Username is required"
+  password_vacia:
+    usuario: standard_user
+    password: ""
+    error: "Epic sadface: Password is required"
