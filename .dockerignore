@@ -1,0 +1,42 @@
+# Contexto de build mínimo: solo entra el código de la suite y sus dependencias.
+
+# --- Secretos y configuración local (NUNCA dentro de la imagen) ---
+.env
+.env.*
+!.env.example
+
+# --- Control de versiones y CI ---
+.git
+.gitignore
+.gitattributes
+.github
+Jenkinsfile
+
+# --- Entornos virtuales y cachés ---
+.venv/
+venv/
+__pycache__/
+**/__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# --- Artefactos generados por Playwright y Allure ---
+reports/
+test-results/
+allure-results/
+allure-report/
+playwright-report/
+screenshots/
+videos/
+
+# --- Docker, editores y sistema ---
+Dockerfile
+docker-compose.yml
+.dockerignore
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+*.log

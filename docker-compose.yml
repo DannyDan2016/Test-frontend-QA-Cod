@@ -1,0 +1,30 @@
+# Ejecución de la suite de UI en contenedor.
+#   docker compose build
+#   docker compose run --rm ui-tests                       # suite completa (ambiente prod)
+#   TEST_ENV=prod docker compose run --rm ui-tests         # elegir ambiente
+#   docker compose run --rm ui-tests pytest -k login       # comando personalizado
+# Los resultados quedan en el host: ./reports/allure-results y ./test-results.
+services:
+  ui-tests:
+    build:
+      context: .
+    image: test-frontend-qa-cod-ui-tests:latest
+    # init: reaper de procesos (navegadores zombis); ipc host: evita que Chromium se
+    # quede sin memoria compartida (/dev/shm), según recomienda la doc de Playwright.
+    init: true
+    ipc: host
+    # .env es opcional: sin él la suite usa los valores por defecto (usuarios públicos
+    # de SauceDemo). Nunca se copia a la imagen; solo se inyecta al ejecutar.
+    env_file:
+      - path: .env
+        required: false
+    # Compose interpola ${TEST_ENV} desde la shell y, si no está, desde el .env del
+    # proyecto; por eso la precedencia es: shell > .env > prod.
+    environment:
+      TEST_ENV: ${TEST_ENV:-prod}
+    # El contenedor corre como pwuser (uid 1000). En Docker Desktop (Windows/macOS) los
+    # bind mounts son escribibles sin más; en Linux el directorio del host debe ser
+    # escribible por el uid 1000 (p. ej. crear ./reports y ./test-results antes de ejecutar).
+    volumes:
+      - ./reports:/app/reports
+      - ./test-results:/app/test-results
