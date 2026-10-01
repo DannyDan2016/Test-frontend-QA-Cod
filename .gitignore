@@ -1,0 +1,29 @@
+# --- Entornos y secretos ---
+.env
+.env.*
+!.env.example
+.venv/
+venv/
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+
+# --- Playwright / Allure (artefactos generados) ---
+allure-results/
+allure-report/
+test-results/
+playwright-report/
+reports/
+videos/
+screenshots/
+
+# --- Editores y sistema ---
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.log
