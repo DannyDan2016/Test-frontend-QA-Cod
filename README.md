@@ -40,19 +40,19 @@ No pretende cubrir todo el sitio: es una **muestra curada de 12 escenarios (23 e
 
 ```mermaid
 flowchart LR
-    subgraph Especificación
+    subgraph espec["Especificación"]
         F["tests/features/**/*.feature<br/>Gherkin en español + tags"]
     end
-    subgraph Pruebas
+    subgraph pruebas["Pruebas"]
         S["tests/step_defs<br/>steps delgados"]
         H["tests/conftest.py<br/>tags @tc-* / @known-bug,<br/>ambiente y datos"]
     end
-    subgraph Soporte
+    subgraph soporte["Soporte"]
         D["support/datos.py<br/>merge comun + ambiente"]
         E["support/estado_app.py<br/>sesión por cookie, carrito"]
         M["support/dinero.py<br/>subtotal, impuesto, total"]
     end
-    subgraph Datos
+    subgraph datos["Datos"]
         Y1["data/comun/*.yaml"]
         Y2["data/staging/*.yaml<br/>overrides por ambiente"]
         C["config/settings.py + .env"]
