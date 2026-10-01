@@ -56,4 +56,4 @@ def test_end_to_end_shopping(page: Page, config: dict) -> None:
     expect(page).to_have_url(re.compile(r"/checkout-complete\.html$"))
 
     # Paso 7: verificar el mensaje de confirmación
-    assert ConfirmationPage(page).is_confirmation_displayed()
+    expect(ConfirmationPage(page).complete_header).to_have_text("Thank you for your order!")

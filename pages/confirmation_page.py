@@ -9,6 +9,3 @@ class ConfirmationPage(BasePage):
     def __init__(self, page: Page) -> None:
         super().__init__(page)
         self.complete_header = page.get_by_test_id("complete-header")
-
-    def is_confirmation_displayed(self) -> bool:
-        return self.complete_header.text_content().strip() == "Thank you for your order!"
