@@ -4,13 +4,14 @@
 * Traducción de tags de Gherkin a marcas de pytest (``@tc-*`` y ``@known-bug``).
 * Adjunto de captura a Allure cuando un escenario falla.
 
+Los fixtures de navegador y los steps compartidos viven en ``tests/step_defs/conftest.py``,
+de modo que los tests unitarios (``tests/unit``) no arrancan Playwright.
 """
 
 from collections.abc import Callable
 
 import allure
 import pytest
-from playwright.sync_api import Playwright
 
 from config import Settings, load_settings
 from support.datos import Datos, DatosNoEncontradosError
@@ -63,12 +64,6 @@ def base_url(pytestconfig: pytest.Config, settings: Settings) -> str:
     Precedencia: --base-url / PYTEST_BASE_URL (CLI) > BASE_URL (entorno o .env) > ambiente.
     """
     return pytestconfig.getoption("base_url") or settings.base_url
-
-
-@pytest.fixture(scope="session", autouse=True)
-def configurar_test_id(playwright: Playwright) -> None:
-    """SauceDemo expone sus selectores estables en el atributo ``data-test``."""
-    playwright.selectors.set_test_id_attribute("data-test")
 
 
 # --- Tags de Gherkin -----------------------------------------------------------------------
