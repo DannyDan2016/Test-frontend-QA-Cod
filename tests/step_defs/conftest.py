@@ -136,6 +136,12 @@ def login_por_ui(login_page: LoginPage, datos: Datos, usuario: str) -> None:
     login_page.login(datos(f"usuarios.usuarios.{usuario}"), datos("usuarios.password"))
 
 
+@then("sigo en la página de login")
+def sigo_en_login(login_page: LoginPage) -> None:
+    verificar_pagina(login_page)
+    expect(login_page.login_button).to_be_visible()
+
+
 @then("estoy en el inventario")
 def en_inventario(inventory_page: InventoryPage, datos: Datos) -> None:
     verificar_pagina(inventory_page, datos("inventario.titulo"))

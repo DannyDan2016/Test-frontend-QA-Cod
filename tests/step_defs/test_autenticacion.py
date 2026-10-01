@@ -36,12 +36,6 @@ def error_de_login(login_page: LoginPage, datos: Datos, caso: str) -> None:
     expect(login_page.error).to_have_text(datos(f"login.casos_invalidos.{caso}.error"))
 
 
-@then("sigo en la página de login")
-def sigo_en_login(login_page: LoginPage) -> None:
-    verificar_pagina(login_page)
-    expect(login_page.login_button).to_be_visible()
-
-
 @given("que no he iniciado sesión")
 def sin_sesion(context: BrowserContext, datos: Datos) -> None:
     cookie = datos("sesion.cookie")
