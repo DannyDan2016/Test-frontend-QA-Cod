@@ -1,0 +1,6 @@
+# Dynamic Catalog (sección nueva del menú lateral)
+spinner:
+  titulo: Dynamic Catalog - Spinner
+  # La web muestra el indicador entre 0,5 y 3 s (aleatorio). Es el límite de la espera
+  # web-first para que desaparezca, no una pausa fija.
+  espera_maxima_carga_ms: 6000
