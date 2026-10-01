@@ -19,10 +19,12 @@ RAIZ_PROYECTO = Path(__file__).resolve().parents[1]
 
 AMBIENTE_POR_DEFECTO = "prod"
 
-# Ambientes disponibles. SauceDemo solo publica producción; para añadir otro (por ejemplo,
-# staging) basta con registrar aquí su URL y seleccionarlo con TEST_ENV o --env.
+# Ambientes disponibles; se eligen con TEST_ENV o --env. Cada uno puede sobrescribir datos
+# en data/<env>/*.yaml (ver support/datos.py). SauceDemo solo publica producción, así que
+# "staging" es un ambiente de EJEMPLO que apunta a la misma URL y demuestra los overrides.
 AMBIENTES: dict[str, dict[str, str]] = {
     "prod": {"base_url": "https://www.saucedemo.com"},
+    "staging": {"base_url": "https://www.saucedemo.com"},
 }
 
 # Credenciales públicas de SauceDemo: la propia pantalla de login las muestra, no son secretos.
