@@ -2,5 +2,12 @@
 playwright==1.63.0
 pytest==9.1.1
 pytest-playwright==0.9.0
-allure-pytest==2.16.2
+# BDD con Gherkin en español. allure-pytest-bdd SUSTITUYE a allure-pytest:
+# tener los dos plugins a la vez duplica los resultados en el reporte.
+pytest-bdd==9.0.0
+allure-pytest-bdd==2.16.2
+# Ejecución en paralelo (pytest -n auto)
+pytest-xdist==3.8.0
+# Datos de prueba y valores esperados en YAML (data/comun + data/<env>)
+PyYAML==6.0.3
 python-dotenv==1.2.3
