@@ -18,6 +18,7 @@ from pages import (
     InventoryPage,
     LoginPage,
 )
+from pages.components import Header, Menu
 from support.aserciones import etiquetas_de_importes, verificar_pagina
 from support.datos import Datos
 from support.dinero import calcular_totales
@@ -45,6 +46,18 @@ def context(context: BrowserContext) -> BrowserContext:
 
 
 # --- Page objects --------------------------------------------------------------------------
+
+
+@pytest.fixture
+def header(page: Page) -> Header:
+    """Cabecera compartida (título y carrito) de la página autenticada en curso."""
+    return Header(page)
+
+
+@pytest.fixture
+def menu(page: Page) -> Menu:
+    """Menú lateral de la página autenticada en curso."""
+    return Menu(page)
 
 
 @pytest.fixture
@@ -148,17 +161,30 @@ def anadir_compra(
         carrito_esperado.append(clave)
 
 
-@then("el contador del carrito refleja los productos añadidos")
-def contador_carrito(inventory_page: InventoryPage, carrito_esperado: list[str]) -> None:
+@when(parsers.parse('quito del carrito el producto "{producto}"'))
+def quitar_producto(
+    inventory_page: InventoryPage, datos: Datos, carrito_esperado: list[str], producto: str
+) -> None:
+    inventory_page.remove_from_cart(_producto(datos, producto)["nombre"])
+    carrito_esperado.remove(producto)
+
+
+@then("el contador del carrito coincide con los productos del carrito")
+def contador_carrito(header: Header, carrito_esperado: list[str]) -> None:
     if carrito_esperado:
-        expect(inventory_page.header.cart_badge).to_have_text(str(len(carrito_esperado)))
+        expect(header.cart_badge).to_have_text(str(len(carrito_esperado)))
     else:
-        expect(inventory_page.header.cart_badge).to_be_hidden()
+        expect(header.cart_badge).to_be_hidden()
+
+
+@then("el contador del carrito desaparece")
+def contador_carrito_oculto(header: Header) -> None:
+    expect(header.cart_badge).to_be_hidden()
 
 
 @when("voy al carrito")
-def ir_al_carrito(inventory_page: InventoryPage, cart_page: CartPage, datos: Datos) -> None:
-    inventory_page.header.open_cart()
+def ir_al_carrito(header: Header, cart_page: CartPage, datos: Datos) -> None:
+    header.open_cart()
     verificar_pagina(cart_page, datos("carrito.titulo"))
 
 
@@ -178,6 +204,14 @@ def iniciar_checkout(
     cart_page: CartPage, checkout_information_page: CheckoutInformationPage, datos: Datos
 ) -> None:
     cart_page.checkout()
+    verificar_pagina(checkout_information_page, datos("checkout.informacion.titulo"))
+
+
+@given("que estoy en el paso de información del checkout")
+def en_informacion_checkout(
+    checkout_information_page: CheckoutInformationPage, datos: Datos
+) -> None:
+    checkout_information_page.open()
     verificar_pagina(checkout_information_page, datos("checkout.informacion.titulo"))
 
 
