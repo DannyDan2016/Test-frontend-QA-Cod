@@ -7,7 +7,7 @@ import pytest
 from playwright.sync_api import expect
 from pytest_bdd import parsers, scenarios, then, when
 
-from pages import InventoryPage, LoginPage
+from pages import CheckoutInformationPage, InventoryPage, LoginPage
 from support.datos import Datos
 
 scenarios("usuarios_especiales")
@@ -45,3 +45,13 @@ def dentro_del_umbral(datos: Datos, mediciones: dict[str, float]) -> None:
         attachment_type=allure.attachment_type.TEXT,
     )
     assert medido <= umbral, f"login -> inventario tardó {medido:.0f} ms (umbral {umbral} ms)"
+
+
+@then("el formulario conserva los datos del cliente válido")
+def formulario_conserva_datos(
+    checkout_information_page: CheckoutInformationPage, datos: Datos
+) -> None:
+    cliente = datos("checkout.cliente_valido")
+    expect(checkout_information_page.first_name).to_have_value(cliente["nombre"])
+    expect(checkout_information_page.last_name).to_have_value(cliente["apellido"])
+    expect(checkout_information_page.postal_code).to_have_value(cliente["codigo_postal"])
