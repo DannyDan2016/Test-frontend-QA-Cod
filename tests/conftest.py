@@ -5,16 +5,12 @@ que el navegador, el modo headed y los artefactos (video, captura, trace) se con
 por CLI o desde pytest.ini. El ambiente y la URL base salen de ``config/settings.py``.
 """
 
-import json
-from pathlib import Path
-
 import allure
 import pytest
 from playwright.sync_api import Playwright
 
 from config import Settings, load_settings
 
-RAIZ_PROYECTO = Path(__file__).resolve().parents[1]
 CLAVE_SETTINGS = pytest.StashKey[Settings]()
 
 
@@ -60,13 +56,6 @@ def base_url(pytestconfig: pytest.Config, settings: Settings) -> str:
 def configurar_test_id(playwright: Playwright) -> None:
     """SauceDemo expone sus selectores estables en el atributo ``data-test``."""
     playwright.selectors.set_test_id_attribute("data-test")
-
-
-@pytest.fixture(scope="session")
-def config() -> dict:
-    """Carga los datos de prueba desde config.json (ruta relativa a la raíz del repo)."""
-    with (RAIZ_PROYECTO / "config.json").open(encoding="utf-8") as archivo:
-        return json.load(archivo)
 
 
 @pytest.hookimpl(wrapper=True)
