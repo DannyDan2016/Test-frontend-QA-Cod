@@ -11,6 +11,7 @@ class LoginPage(BasePage):
         self.username = page.get_by_test_id("username")
         self.password = page.get_by_test_id("password")
         self.login_button = page.get_by_test_id("login-button")
+        self.error = page.get_by_test_id("error")
 
     def login(self, username: str, password: str) -> None:
         self.username.fill(username)
