@@ -1,6 +1,23 @@
 # Checkout: información del comprador, resumen y confirmación.
 informacion:
   titulo: "Checkout: Your Information"
+  # Casos de campos obligatorios: la web valida en orden nombre -> apellido -> código postal
+  campos_obligatorios:
+    nombre_vacio:
+      nombre: ""
+      apellido: Doe
+      codigo_postal: "12345"
+      error: "Error: First Name is required"
+    apellido_vacio:
+      nombre: John
+      apellido: ""
+      codigo_postal: "12345"
+      error: "Error: Last Name is required"
+    codigo_postal_vacio:
+      nombre: John
+      apellido: Doe
+      codigo_postal: ""
+      error: "Error: Postal Code is required"
 
 # Cliente ficticio con datos válidos. El código postal es texto: conserva ceros iniciales.
 cliente_valido:
