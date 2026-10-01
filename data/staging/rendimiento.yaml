@@ -1,0 +1,3 @@
+# Ejemplo: en un staging con menos recursos se toleraría más latencia.
+login_inventario:
+  umbral_ms: 15000
