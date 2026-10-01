@@ -1,10 +1,18 @@
-from playwright.async_api import Page
+from playwright.sync_api import Page
 
-class LoginPage:
-    def __init__(self, page: Page):
-        self.page = page
+from pages.base_page import BasePage
 
-    async def login(self, username: str, password: str):
-        await self.page.locator("#user-name").fill(username)
-        await self.page.locator("#password").fill(password)
-        await self.page.locator("#login-button").click()
+
+class LoginPage(BasePage):
+    path = "/"
+
+    def __init__(self, page: Page) -> None:
+        super().__init__(page)
+        self.username = page.get_by_test_id("username")
+        self.password = page.get_by_test_id("password")
+        self.login_button = page.get_by_test_id("login-button")
+
+    def login(self, username: str, password: str) -> None:
+        self.username.fill(username)
+        self.password.fill(password)
+        self.login_button.click()

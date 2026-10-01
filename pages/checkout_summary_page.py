@@ -1,18 +1,17 @@
-from playwright.async_api import Page
+from playwright.sync_api import Page
 
-class CheckoutSummaryPage:
-    def __init__(self, page: Page):
-        self.page = page
+from pages.base_page import BasePage
 
-    async def get_subtotal(self):
-        return (await self.page.locator("[data-test='subtotal-label']").text_content()).strip()
 
-    async def get_tax(self):
-        return (await self.page.locator("[data-test='tax-label']").text_content()).strip()
+class CheckoutSummaryPage(BasePage):
+    path = "/checkout-step-two.html"
 
-    async def get_total(self):
-        return (await self.page.locator("[data-test='total-label']").text_content()).strip()
+    def __init__(self, page: Page) -> None:
+        super().__init__(page)
+        self.subtotal = page.get_by_test_id("subtotal-label")
+        self.tax = page.get_by_test_id("tax-label")
+        self.total = page.get_by_test_id("total-label")
+        self.finish_button = page.get_by_test_id("finish")
 
-    async def complete_purchase(self):
-        await self.page.locator("[data-test='finish']").click()
-
+    def complete_purchase(self) -> None:
+        self.finish_button.click()
