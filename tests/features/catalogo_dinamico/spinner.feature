@@ -5,9 +5,11 @@ Característica: Catálogo dinámico con indicador de carga
   Para saber que la página está trabajando
 
   @regression @tc-dyn-002 @tc-dyn-003
-  Escenario: El catálogo muestra los productos al terminar la carga
+  Escenario: El indicador de carga se muestra hasta que llegan los productos
     Dado que inicié sesión como "estandar"
+    Y que el reloj del navegador está en pausa
     Cuando abro el catálogo dinámico con indicador de carga
     Entonces veo el indicador de carga
-    Y el indicador desaparece al terminar la carga
+    Cuando transcurre el tiempo máximo de carga
+    Entonces el indicador de carga desaparece
     Y la rejilla muestra todos los productos del catálogo
