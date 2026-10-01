@@ -10,7 +10,7 @@
 .gitignore
 .gitattributes
 .github
-Jenkinsfile
+ci/jenkins/
 
 # --- Entornos virtuales y cachés ---
 .venv/
