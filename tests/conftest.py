@@ -19,6 +19,11 @@ from support.datos import Datos, DatosNoEncontradosError
 CLAVE_SETTINGS = pytest.StashKey[Settings]()
 CLAVE_DATOS = pytest.StashKey[Datos]()
 
+MOTIVO_RENDIMIENTO_EN_PARALELO = (
+    "medición de rendimiento: en paralelo mediría la contención de CPU entre navegadores; "
+    "se ejecuta en serie con: pytest -m performance"
+)
+
 
 def pytest_addoption(parser: pytest.Parser) -> None:
     parser.addoption(
@@ -94,11 +99,15 @@ def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item
 
     * ``pytest -k TC-AUTH-001`` selecciona los escenarios con esa tag.
     * El motivo del xfail sale de ``bugs.yaml`` (clave = ID del caso).
+    * ``@performance`` se omite en ejecuciones con pytest-xdist (ver motivo).
     """
     datos = config.stash[CLAVE_DATOS]
+    en_paralelo = hasattr(config, "workerinput")  # proceso worker de pytest-xdist
     for item in items:
         ids = [marca.args[0] for marca in item.iter_markers("tc")]
         item.extra_keyword_matches.update(ids)
+        if en_paralelo and item.get_closest_marker("performance"):
+            item.add_marker(pytest.mark.skip(reason=MOTIVO_RENDIMIENTO_EN_PARALELO))
         if item.get_closest_marker("known_bug") is None:
             continue
         try:
