@@ -1,0 +1,23 @@
+# Checkout: información del comprador, resumen y confirmación.
+informacion:
+  titulo: "Checkout: Your Information"
+
+# Cliente ficticio con datos válidos. El código postal es texto: conserva ceros iniciales.
+cliente_valido:
+  nombre: John
+  apellido: Doe
+  codigo_postal: "12345"
+
+resumen:
+  titulo: "Checkout: Overview"
+  # Impuesto aplicado por SauceDemo sobre el subtotal (redondeado a 2 decimales)
+  tasa_impuesto: "0.08"
+  # Plantillas de las etiquetas; {importe} se sustituye por el valor con moneda ("$25.98")
+  etiquetas:
+    subtotal: "Item total: {importe}"
+    impuesto: "Tax: {importe}"
+    total: "Total: {importe}"
+
+confirmacion:
+  titulo: "Checkout: Complete!"
+  cabecera: "Thank you for your order!"
