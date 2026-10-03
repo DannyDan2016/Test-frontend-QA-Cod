@@ -1,0 +1,88 @@
+// Pipeline de Jenkins equivalente a la CI de GitHub Actions (alternativa on-premise).
+//
+// Requisitos: plugins Pipeline, Docker Pipeline, Allure (con una instalación de Allure en
+// "Global Tool Configuration") y Workspace Cleanup; un agente con Docker. El checkout lo hace
+// Jenkins al cargar el pipeline desde SCM ("Pipeline script from SCM", ruta
+// ci/jenkins/Jenkinsfile), así que no hay etapa de git.
+pipeline {
+    // Nodo anfitrión: allí se publican los artefactos y el reporte de Allure (post)
+    agent any
+
+    parameters {
+        choice(name: 'NAVEGADOR', choices: ['chromium', 'firefox', 'webkit'], description: 'Navegador de Playwright')
+        string(name: 'MARCADORES', defaultValue: '', description: 'Expresión -m de pytest (vacío = suite completa). Ej.: smoke')
+        choice(name: 'TEST_ENV', choices: ['prod', 'staging'], description: 'Ambiente (datos de data/comun + data/<TEST_ENV>)')
+    }
+
+    options {
+        timeout(time: 30, unit: 'MINUTES')
+        timestamps()
+        buildDiscarder(logRotator(numToKeepStr: '20'))
+        disableConcurrentBuilds()
+    }
+
+    environment {
+        TEST_ENV = "${params.TEST_ENV}"
+        PIP_DISABLE_PIP_VERSION_CHECK = '1'
+        PYTHONDONTWRITEBYTECODE = '1'
+    }
+
+    stages {
+        stage('Suite en la imagen de Playwright') {
+            agent {
+                docker {
+                    // La etiqueta DEBE coincidir con playwright==X de requirements.txt y el Dockerfile
+                    image 'mcr.microsoft.com/playwright/python:v1.63.0-noble'
+                    // init: recoge procesos zombis de los navegadores; ipc=host: evita que Chromium
+                    // se quede sin memoria compartida (recomendación de la doc de Playwright)
+                    args '--init --ipc=host'
+                    // Mismo nodo y workspace que el pipeline: los resultados quedan para el post
+                    reuseNode true
+                }
+            }
+            environment {
+                // El contenedor corre con el uid de Jenkins, sin HOME propio: pip --user instala
+                // en el workspace (la imagen no trae python3-venv)
+                HOME = "${env.WORKSPACE}"
+            }
+            stages {
+                stage('Dependencias') {
+                    steps {
+                        sh 'pip install --user -r requirements-dev.txt'
+                    }
+                }
+
+                stage('Lint') {
+                    steps {
+                        sh '''
+                            export PATH="$HOME/.local/bin:$PATH"
+                            ruff check .
+                            ruff format --check .
+                        '''
+                    }
+                }
+
+                stage('Pruebas') {
+                    steps {
+                        // Igual que la CI: en paralelo y después @performance en serie
+                        sh '''
+                            export PATH="$HOME/.local/bin:$PATH"
+                            bash ci/ejecutar_suite.sh "$NAVEGADOR" "$MARCADORES"
+                        '''
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            archiveArtifacts artifacts: 'reports/**, test-results/**', allowEmptyArchive: true
+            allure includeProperties: false,
+                   results: [[path: 'reports/allure-results'], [path: 'reports/allure-results-rendimiento']]
+        }
+        cleanup {
+            cleanWs()
+        }
+    }
+}

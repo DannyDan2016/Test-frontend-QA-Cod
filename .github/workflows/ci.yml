@@ -1,0 +1,188 @@
+# CI de la suite de UI. Todo se ejecuta DENTRO de la imagen Docker del repo (docker compose),
+# la misma que se usa en local, así que el runner solo necesita Docker.
+#
+# | Disparador        | Chromium        | Firefox / WebKit | Reporte Allure          |
+# |-------------------|-----------------|------------------|-------------------------|
+# | pull_request      | suite completa  | @smoke           | artefacto               |
+# | push a main       | suite completa  | @smoke           | artefacto + GitHub Pages|
+# | schedule (nightly)| suite completa  | suite completa   | artefacto + GitHub Pages|
+# | workflow_dispatch | -m del input    | -m del input     | artefacto (+ Pages en main) |
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    # Todos los días a las 04:00 UTC: detecta cambios en saucedemo.com (p. ej. un XPASS
+    # cuando arreglan un @known-bug) aunque nadie toque el repo.
+    - cron: "0 4 * * *"
+  workflow_dispatch:
+    inputs:
+      marcadores:
+        description: "Expresión -m de pytest (vacío = suite completa). Ej.: smoke, negative and not known_bug"
+        required: false
+        default: ""
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  # Imagen con ruff además de las dependencias de ejecución
+  REQUIREMENTS_FILE: requirements-dev.txt
+  TEST_ENV: prod
+
+jobs:
+  lint:
+    name: Lint y tests unitarios
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Construir la imagen de pruebas
+        run: docker compose build
+
+      - name: Preparar los directorios de salida
+        # pytest escribe en ./reports (Allure) aunque solo se ejecuten los unitarios
+        run: mkdir -p reports test-results && chmod 777 reports test-results
+
+      - name: ruff check y ruff format --check
+        run: docker compose run --rm ui-tests sh -c "ruff check . && ruff format --check ."
+
+      - name: Tests unitarios (cargador YAML e importes)
+        run: docker compose run --rm ui-tests pytest tests/unit -p no:cacheprovider
+
+  plan:
+    name: Plan de navegadores
+    runs-on: ubuntu-24.04
+    outputs:
+      matriz: ${{ steps.matriz.outputs.matriz }}
+    steps:
+      - name: Calcular la matriz según el disparador
+        id: matriz
+        env:
+          EVENTO: ${{ github.event_name }}
+          MARCADORES: ${{ inputs.marcadores }}
+        run: |
+          if [[ "$EVENTO" == "schedule" || "$EVENTO" == "workflow_dispatch" ]]; then
+            # Nightly y ejecución manual: los tres navegadores con el mismo filtro
+            matriz=$(jq -cn --arg m "${MARCADORES:-}" \
+              '["chromium","firefox","webkit"] | map({navegador: ., marcadores: $m})')
+          else
+            # PR y push: suite completa en Chromium y smoke cross-browser
+            matriz='[{"navegador":"chromium","marcadores":""},{"navegador":"firefox","marcadores":"smoke"},{"navegador":"webkit","marcadores":"smoke"}]'
+          fi
+          echo "matriz=$matriz" >> "$GITHUB_OUTPUT"
+          echo "Matriz: $matriz"
+
+  pruebas:
+    name: Pruebas (${{ matrix.navegador }}${{ matrix.marcadores != '' && format(', -m {0}', matrix.marcadores) || ', completa' }})
+    needs: [lint, plan]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.plan.outputs.matriz) }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Construir la imagen de pruebas
+        run: docker compose build
+
+      - name: Preparar los directorios de salida
+        # El contenedor corre como pwuser (uid 1000) y el runner con otro uid: los bind
+        # mounts deben ser escribibles para ambos.
+        run: mkdir -p reports test-results && chmod 777 reports test-results
+
+      - name: Ejecutar la suite (paralelo + @performance en serie)
+        env:
+          NAVEGADOR: ${{ matrix.navegador }}
+          MARCADORES: ${{ matrix.marcadores }}
+        run: docker compose run --rm ui-tests bash ci/ejecutar_suite.sh "$NAVEGADOR" "$MARCADORES"
+
+      - name: Subir resultados de Allure
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: allure-results-${{ matrix.navegador }}
+          path: reports/
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Subir evidencias de los fallos (trace, vídeo y captura)
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: evidencias-${{ matrix.navegador }}
+          path: test-results/
+          if-no-files-found: ignore
+          retention-days: 14
+
+  reporte:
+    name: Reporte Allure 3
+    needs: pruebas
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Descargar los resultados de todos los navegadores
+        uses: actions/download-artifact@v8
+        with:
+          pattern: allure-results-*
+          path: resultados
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+
+      - name: Generar el reporte
+        run: |
+          mapfile -t directorios < <(find resultados -type d -name 'allure-results*' | sort)
+          if [[ ${#directorios[@]} -eq 0 ]]; then
+            echo "::warning::No hay resultados de Allure que publicar"
+            exit 0
+          fi
+          printf 'Resultados: %s\n' "${directorios[@]}"
+          npx --yes allure@3.19.1 generate "${directorios[@]}" \
+            --output allure-report \
+            --name "Test-frontend-QA-Cod · SauceDemo (${GITHUB_EVENT_NAME}, ${GITHUB_SHA::7})"
+
+      - name: Subir el reporte como artefacto
+        uses: actions/upload-artifact@v7
+        with:
+          name: allure-report
+          path: allure-report/
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Preparar el reporte para GitHub Pages
+        if: ${{ github.ref == 'refs/heads/main' && github.event_name != 'pull_request' }}
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: allure-report/
+
+  publicar:
+    name: Publicar en GitHub Pages
+    needs: reporte
+    if: ${{ !cancelled() && needs.reporte.result == 'success' && github.ref == 'refs/heads/main' && github.event_name != 'pull_request' }}
+    runs-on: ubuntu-24.04
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.despliegue.outputs.page_url }}
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    steps:
+      - name: Desplegar el reporte
+        id: despliegue
+        uses: actions/deploy-pages@v5

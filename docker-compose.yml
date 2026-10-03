@@ -1,13 +1,17 @@
 # Ejecución de la suite de UI en contenedor.
 #   docker compose build
-#   docker compose run --rm ui-tests                       # suite completa (ambiente prod)
-#   TEST_ENV=prod docker compose run --rm ui-tests         # elegir ambiente
-#   docker compose run --rm ui-tests pytest -k login       # comando personalizado
-# Los resultados quedan en el host: ./reports/allure-results y ./test-results.
+#   docker compose run --rm ui-tests                                     # suite completa (prod)
+#   docker compose run --rm ui-tests bash ci/ejecutar_suite.sh firefox smoke
+#   TEST_ENV=staging docker compose run --rm ui-tests                    # elegir ambiente
+#   docker compose run --rm ui-tests pytest -k TC-AUTH-001               # comando personalizado
+#   REQUIREMENTS_FILE=requirements-dev.txt docker compose build          # imagen con ruff (CI)
+# Los resultados quedan en el host: ./reports (Allure) y ./test-results (fallos).
 services:
   ui-tests:
     build:
       context: .
+      args:
+        REQUIREMENTS_FILE: ${REQUIREMENTS_FILE:-requirements.txt}
     image: test-frontend-qa-cod-ui-tests:latest
     # init: reaper de procesos (navegadores zombis); ipc host: evita que Chromium se
     # quede sin memoria compartida (/dev/shm), según recomienda la doc de Playwright.

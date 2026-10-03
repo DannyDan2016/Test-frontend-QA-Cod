@@ -6,6 +6,7 @@ valores esperados del YAML (fixture ``datos``) y verifican con assertions web-fi
 
 import re
 
+import allure
 import pytest
 from playwright.sync_api import BrowserContext, Page, Playwright, expect
 from pytest_bdd import given, parsers, then, when
@@ -36,6 +37,16 @@ TELEMETRIA = re.compile(r"^https?://([^/]+\.)?backtrace\.io/")
 def configurar_test_id(playwright: Playwright) -> None:
     """SauceDemo expone sus selectores estables en el atributo ``data-test``."""
     playwright.selectors.set_test_id_attribute("data-test")
+
+
+@pytest.hookimpl(trylast=True)
+def pytest_bdd_before_scenario(request: pytest.FixtureRequest) -> None:
+    """Añade el navegador como parámetro de Allure: separa los resultados de cada navegador en
+    el reporte combinado de la CI (forma parte del historyId).
+
+    trylast: allure-pytest-bdd crea el resultado del escenario en este mismo hook.
+    """
+    allure.dynamic.parameter("navegador", request.getfixturevalue("browser_name"))
 
 
 @pytest.fixture
