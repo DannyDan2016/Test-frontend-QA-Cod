@@ -1,0 +1,5 @@
+# Bugs conocidos del sitio, indexados por el ID del caso (@tc-*).
+# Un escenario con @known-bug afirma el comportamiento CORRECTO y se marca como
+# xfail(strict=True) con este motivo: si Sauce Labs arregla el bug, el XPASS rompe el
+# build y obliga a revisar el escenario. Ver tests/conftest.py.
+bugs: {}

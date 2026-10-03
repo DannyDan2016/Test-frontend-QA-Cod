@@ -1,0 +1,6 @@
+# Overrides de ejemplo para staging: solo se declara lo que cambia respecto a
+# data/comun/checkout.yaml (merge profundo; lo que no aparece aquí se hereda).
+cliente_valido:
+  nombre: Staging
+  apellido: QA
+  codigo_postal: "08001"

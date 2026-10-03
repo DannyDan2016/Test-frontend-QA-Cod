@@ -8,4 +8,4 @@ target-version = "py312"
 select = ["E", "F", "W", "I", "B", "UP", "SIM", "PT", "N", "RUF"]
 
 [lint.isort]
-known-first-party = ["config", "pages"]
+known-first-party = ["config", "pages", "support"]

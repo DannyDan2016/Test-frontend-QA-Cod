@@ -1,0 +1,4 @@
+# Estado de la aplicación en el navegador (verificado en el bundle de SauceDemo):
+# la sesión es solo una cookie con el nombre de usuario y el carrito vive en localStorage.
+cookie: session-username
+clave_carrito_local_storage: cart-contents

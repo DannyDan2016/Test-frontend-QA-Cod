@@ -1,0 +1,13 @@
+# Usuarios de SauceDemo. La contraseña no se versiona aquí: se lee del entorno
+# (.env local o secrets de la CI) con un valor por defecto público, porque la propia
+# pantalla de login de SauceDemo la muestra.
+password: ${SAUCE_PASSWORD:-secret_sauce}
+
+# Clave lógica (la que se usa en los .feature) -> nombre de usuario real
+usuarios:
+  estandar: standard_user
+  bloqueado: locked_out_user
+  problematico: problem_user
+  lento: performance_glitch_user
+  con_errores: error_user
+  visual: visual_user

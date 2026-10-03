@@ -1,0 +1,7 @@
+# Página del carrito (/cart.html)
+titulo: Your Cart
+
+# Compras predefinidas: lista de claves de catalogo.yaml, en el orden en que se añaden
+compras:
+  un_producto: [mochila]
+  dos_productos: [camiseta_roja, luz_bicicleta]
