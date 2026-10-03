@@ -9,7 +9,7 @@ Característica: Compra completa
     Dado que estoy en la página de login
     Cuando inicio sesión como "estandar"
     Y añado al carrito los productos de la compra "dos_productos"
-    Entonces el contador del carrito refleja los productos añadidos
+    Entonces el contador del carrito coincide con los productos del carrito
     Cuando voy al carrito
     Entonces el carrito lista los productos de la compra "dos_productos"
     Cuando inicio el checkout

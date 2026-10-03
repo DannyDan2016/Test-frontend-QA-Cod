@@ -2,4 +2,7 @@
 # Un escenario con @known-bug afirma el comportamiento CORRECTO y se marca como
 # xfail(strict=True) con este motivo: si Sauce Labs arregla el bug, el XPASS rompe el
 # build y obliga a revisar el escenario. Ver tests/conftest.py.
-bugs: {}
+bugs:
+  TC-PROB-006: >-
+    problem_user: lo que se escribe en "Last Name" sobrescribe "First Name" y el
+    apellido queda vacío, así que al continuar aparece "Error: Last Name is required".

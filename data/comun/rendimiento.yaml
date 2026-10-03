@@ -1,0 +1,8 @@
+# Umbrales de rendimiento percibido. performance_glitch_user bloquea el hilo principal
+# ~5 s en cada render del inventario (medido: login -> inventario 5,15 s).
+login_inventario:
+  # Tiempo aceptado para este usuario: por encima, el escenario falla. El escenario se
+  # ejecuta en serie (@performance) para no medir la contención del paralelismo.
+  umbral_ms: 10000
+  # Límite de la espera web-first (holgado para poder informar del tiempo real medido)
+  espera_maxima_ms: 30000

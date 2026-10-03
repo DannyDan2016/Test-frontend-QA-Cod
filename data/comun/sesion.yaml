@@ -2,3 +2,6 @@
 # la sesión es solo una cookie con el nombre de usuario y el carrito vive en localStorage.
 cookie: session-username
 clave_carrito_local_storage: cart-contents
+
+# Aviso al entrar sin sesión en una página protegida; {ruta} es la ruta pedida.
+mensaje_acceso_restringido: "Epic sadface: You can only access '{ruta}' when you are logged in."

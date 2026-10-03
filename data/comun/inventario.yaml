@@ -1,2 +1,26 @@
 # Página de inventario (/inventory.html)
 titulo: Products
+
+# Opciones del selector de orden. El orden esperado se calcula en Python ordenando
+# catalogo.yaml por "campo" (orden estable: en el empate de precio se respeta el A-Z).
+ordenacion:
+  nombre_ascendente:
+    valor: az
+    etiqueta: Name (A to Z)
+    campo: nombre
+    descendente: false
+  nombre_descendente:
+    valor: za
+    etiqueta: Name (Z to A)
+    campo: nombre
+    descendente: true
+  precio_ascendente:
+    valor: lohi
+    etiqueta: Price (low to high)
+    campo: precio
+    descendente: false
+  precio_descendente:
+    valor: hilo
+    etiqueta: Price (high to low)
+    campo: precio
+    descendente: true
