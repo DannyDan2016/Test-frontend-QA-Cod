@@ -1,14 +1,19 @@
-from playwright.async_api import Page
+from playwright.sync_api import Page
 
-class InventoryPage:
-    def __init__(self, page: Page):
-        self.page = page
+from pages.base_page import BasePage
 
-    async def add_to_cart(self, product_name: str):
-        product_locator = self.page.locator(f".inventory_item:has-text('{product_name}')")
-        add_button = product_locator.locator(".btn_inventory")
-        await add_button.click() 
 
-    async def get_cart_count(self) -> str:
-        count_element = self.page.locator(".shopping_cart_badge")
-        return await count_element.text_content()  
+class InventoryPage(BasePage):
+    path = "/inventory.html"
+
+    def __init__(self, page: Page) -> None:
+        super().__init__(page)
+        self.items = page.get_by_test_id("inventory-item")
+        self.cart_badge = page.get_by_test_id("shopping-cart-badge")
+        self.cart_link = page.get_by_test_id("shopping-cart-link")
+
+    def add_to_cart(self, product_name: str) -> None:
+        self.items.filter(has_text=product_name).get_by_role("button", name="Add to cart").click()
+
+    def open_cart(self) -> None:
+        self.cart_link.click()

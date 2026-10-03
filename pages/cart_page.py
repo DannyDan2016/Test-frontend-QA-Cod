@@ -1,16 +1,17 @@
-from playwright.async_api import Page
+from playwright.sync_api import Page
 
-class CartPage:
-    def __init__(self, page: Page):
-        self.page = page
+from pages.base_page import BasePage
 
-    async def get_products(self):
-        product_elements = await self.page.locator(".cart_item").all()  
-        products = []
 
-        for element in product_elements:
-            name = await element.locator(".inventory_item_name").text_content()  
-            price = await element.locator(".inventory_item_price").text_content()  
-            products.append((name.strip(), price.strip()))
+class CartPage(BasePage):
+    path = "/cart.html"
 
-        return products
+    def __init__(self, page: Page) -> None:
+        super().__init__(page)
+        self.items = page.get_by_test_id("inventory-item")
+        self.item_names = page.get_by_test_id("inventory-item-name")
+        self.item_prices = page.get_by_test_id("inventory-item-price")
+        self.checkout_button = page.get_by_test_id("checkout")
+
+    def checkout(self) -> None:
+        self.checkout_button.click()
