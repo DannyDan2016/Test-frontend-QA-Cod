@@ -10,4 +10,4 @@ allure-pytest-bdd==2.16.2
 pytest-xdist==3.8.0
 # Datos de prueba y valores esperados en YAML (data/comun + data/<env>)
 PyYAML==6.0.3
-python-dotenv==1.2.3
+python-dotenv==1.2.4
