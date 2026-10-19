@@ -2,7 +2,7 @@
 # de playwright fijada en requirements.txt (playwright==1.63.0): así los navegadores que
 # trae la imagen (en /ms-playwright) son exactamente los que espera la librería y no hace
 # falta ejecutar `playwright install`.
-FROM mcr.microsoft.com/playwright/python:v1.63.0-noble
+FROM mcr.microsoft.com/playwright/python:v1.64.0-noble
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
